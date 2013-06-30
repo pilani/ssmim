@@ -34,9 +34,9 @@ setTimeout(launch,1000*60*10);
 
 
 //getRunningInstances();
-checkForHealthyInstances(callback);
+//checkForHealthyInstances();
 //deregisterInstance('i-6e3c1923');
-function checkForHealthyInstances(){
+function checkForHealthyInstances(callback){
 
 elb.describeInstanceHealth({LoadBalancerName:'mim'},function (err,data){
 if(err){
