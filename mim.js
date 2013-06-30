@@ -16,7 +16,7 @@ launch();
 
 function launch(){
 	logm("starting waterfall");
-async.waterfall([getOldestInstance,deregisterInstance,deleteInstance],function(err,result){
+async.waterfall([checkForHealthyInstances,getOldestInstance,deregisterInstance,deleteInstance],function(err,result){
 	if(err){
 logm("final callback "+err)
 	}else{
@@ -24,7 +24,7 @@ logm("final callback "+err)
 logm(result);
 	}
 	logm("reset launch")
-setTimeout(launch,1000*60*8);
+setTimeout(launch,1000*60*10);
 });
 
 }
@@ -34,23 +34,40 @@ setTimeout(launch,1000*60*8);
 
 
 //getRunningInstances();
-//deleteMIMInstances();
+checkForHealthyInstances(callback);
 //deregisterInstance('i-6e3c1923');
-/*function deleteMIMInstances(){
+function checkForHealthyInstances(){
 
 elb.describeInstanceHealth({LoadBalancerName:'mim'},function (err,data){
 if(err){
 	logm(err);
+	callback(err);
 }else{
 
-	logm(data);
+	//logm(data);
+	var d = data['InstanceStates'];
+	logm(d);
+	var count=0
+	for(var key in d){
+		logm(d[key]['State']);
+		if(d[key]['State'].indexOf('OutOfService')==-1){
+           count++;
+		}
+	}
+	if(count>=3){
+		logm("there are "+ count +" healthy instances so continue");
+		callback(null);
+	}else{
+		logm("healthy instances are less so we wont delete "+count);
+		callback(new Error());
+	}
 	
 }
 
 
 })
 
-}*/
+}
 
 function deleteInstance(instanceId,callback){
 		ec2.terminateInstances({InstanceIds:[instanceId]},function(err,data){
